@@ -1,0 +1,42 @@
+安装Git:
+# emerge --ask dev-vcs/git
+创建Git账号:
+# mkdir -p /lhjok/user     //创建代码根目录以及user目录
+# groupadd git     //新建git用户
+# useradd git -g git -m -s /usr/bin/git-shell -b /lhjok/user     //添加用户到用户组
+创建Git空版本库:
+# cd /lhjok
+# git init --bare git     //初始化空的Git仓库,Git仓库默认不要动它。
+创建或迁移网站目录:
+# git clone /lhjok/git /lhjok/www    //克隆空的仓库到www文件夹。
+# cp -a /mycode/* /lhjok/www/     //这一步将原来的代码，复制到新的目录下。
+# cd /lhjok/www    //切换到新的目录下。
+# git add ./     //添加所有文件。
+# git commit -m "first commit"     //记录添加的所有文件。
+# git push origin master     //提交代码到Git仓库。
+设置网站钩子:【提交代码到Git版本库后，自动拉取到网站目录】
+# cd /lhjok/git/hooks
+# mv post-update.sample post-update
+# sed -i "s/exec/#exec/" post-update
+# echo "unset \$(git rev-parse --local-env-vars)" >> post-update
+# echo "cd /lhjok/www" >> post-update
+# echo "git pull" >> post-update
+# echo "/usr/local/bin/jekyll build" >> post-update     //用绝对路径防止找不到命令。
+# echo "exit" >> post-update
+修改git库及网站目录权限:
+# chown -R git:git /lhjok/git     //仓库权限设置
+# chown -R git:git /lhjok/www     //项目副本权限设置
+创建登录密钥:
+# cd    //切换会当前用户根目录。
+# ssh-keygen -C mygitserver -f mykey     //这时会产生一个私钥和一个公钥。
+# mkdir /lhjok/user/git/.ssh     //创建一个.ssh目录，也许已经存在了。
+# mv mykey.pub /lhjok/user/git/.ssh/authorized_keys     //把公钥移动到新建的.ssh目录下并命名为authorized_keys文件，.pub是公钥文件。
+# chown -R git:git /lhjok/user/git/.ssh
+# chmod 700 /lhjok/user/git/.ssh
+# chmod 600 /lhjok/user/git/.ssh/authorized_keys
+# vim mykey     //打开刚刚创建的私钥文件(注意：文件产生时所在的目录)，复制里面的数据。
+客户端私钥的用法:
+# mkdir ~/.ssh     //如果已经有这个目录就可以忽略这一步。
+# vim ~/.ssh/id_rsa     //将复制下来的服务器私钥，黏贴到该文件并保存(如果已有请替换）。
+# chmod 700 ~/.ssh/id_rsa     //修改私钥权权限。
+# git clone ssh://git@255.255.255.255/lhjok/git ~/filename     //克隆项目文件到客户端(替换自己服务器IP)。
